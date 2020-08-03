@@ -32,7 +32,7 @@ jobs:
       run: |
                apt-get update 
 	       apt-get install -qy apt-utils
-	       apt-get -qy install locales locale-gen --no-purge en_US.UTF-8 
+
 	       apt-get install -qy \
 	       git \
 	       build-essential \
