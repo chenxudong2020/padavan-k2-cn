@@ -1,8 +1,8 @@
 # # # # # # # # # # #
-#  自动构建 PSG1218
+#  自动构建K2P 
 #      
 # # # # # # # # # # #
-name: Padavan CI PSG1218
+name: Padavan CI K2P
 on: 
   release:
     types: [published]
@@ -30,48 +30,38 @@ jobs:
       env:
         DEBIAN_FRONTEND: noninteractive  # 非交互模式
       run: |
-            sudo apt-get update
+        sudo apt-get update
         sudo apt-get -y install unzip libtool-bin curl cmake gperf gawk flex bison nano xxd fakeroot \
         cpio git python-docutils gettext automake autopoint texinfo build-essential help2man \
         pkg-config zlib1g-dev libgmp3-dev libmpc-dev libmpfr-dev libncurses5-dev libltdl-dev wget
         sudo timedatectl set-timezone 'Asia/Shanghai'  # 设置时区
-       - name: Clone Code
-         run: |
-	      git clone https://bitbucket.org/padavan/rt-n56u.git /opt/rt-n56u 
-      - name: Clear And Build            # 5.清理构建树并开始构建
-         run: |
-	       sed -i 's/sudo//g' /opt/rt-n56u/trunk/tools/depmod.sh
-	       sed -i 's/sudo//g' /opt/rt-n56u/trunk/user/scripts/makedevlinks
-	       sed -i 's/sudo//g' /opt/rt-n56u/trunk/vendors/Ralink/MT7620/Makefile
-               cp config/ac54u_base.config /opt/rt-n56u/trunk/.config
-	       cp config/board.h /opt/rt-n56u/trunk/configs/boards/RT-AC54U/board.h
-	       cp config/kernel-3.4.x.config /opt/rt-n56u/trunk/configs/boards/RT-AC54U/kernel-3.4.x.config
-	       cp config/board.mk /opt/rt-n56u/trunk/configs/boards/RT-AC54U/board.mk
-	       cp config/defaults.h /opt/rt-n56u/trunk/user/shared/defaults.h
-	       cp config/CN.dict /opt/rt-n56u/trunk/user/www/dict/
-	       cp config/Makefile /opt/rt-n56u/trunk/user/www/
-	       cp Stock_v21.4.6.10/MT7612E_EEPROM.bin /opt/rt-n56u/trunk/vendors/Ralink/MT7620/MT7612E_EEPROM.bin
-	       cp Stock_v21.4.6.10/MT7620_AP_2T2R-4L_V15.BIN /opt/rt-n56u/trunk/vendors/Ralink/MT7620/MT7620_AP_2T2R-4L_external_LNA_external_PA_V15.bin
-	       cd /opt/rt-n56u/toolchain-mipsel
-	       ./clean_sources
-	       ./build_toolchain_3.4.x
-	       cd /opt/rt-n56u/trunk
-	       ./clear_tree
-	       ./build_firmware
-	       mkdir -p /root/images
-	       cp /opt/rt-n56u/trunk/images/*.trx /opt/rt-n56u/images
-               echo "::set-env name=FILE_NAME::PSG1218-$(date "+%Y%m%d")"  # 包名
-               echo "::set-env name=IMAGES_PATH::/opt/rt-n56u/images/"      # 打包目录
-               echo "::set-output name=status::success"    
-   - name: Upload firmware to cowtransfer
+    - name: Clone Code                 # 3.拷贝代码
+      run: |
+        git clone https://bitbucket.org/padavan/rt-n56u.git /opt/rt-n56u
+    - name: Clear And Build            # 5.清理构建树并开始构建
+      run: |
+       
+               sudo sed -i 's/sudo//g' /opt/rt-n56u/trunk/tools/depmod.sh && sed -i 's/sudo//g' /opt/rt-n56u/trunk/user/scripts/makedevlinks && sed -i "s/sudo//g" /opt/rt-n56u/trunk/vendors/Ralink/MT7620/Makefile && cp config/ac54u_base.config /opt/rt-n56u/trunk/.config && cp config/board.h /opt/rt-n56u/trunk/configs/boards/RT-AC54U/board.h && cp config/kernel-3.4.x.config /opt/rt-n56u/trunk/configs/boards/RT-AC54U/kernel-3.4.x.config && cp config/board.mk /opt/rt-n56u/trunk/configs/boards/RT-AC54U/board.mk && cp config/defaults.h /opt/rt-n56u/trunk/user/shared/defaults.h && cp config/CN.dict /opt/rt-n56u/trunk/user/www/dict/ && cp config/Makefile /opt/rt-n56u/trunk/user/www/ && cp Stock_v21.4.6.10/MT7612E_EEPROM.bin /opt/rt-n56u/trunk/vendors/Ralink/MT7620/MT7612E_EEPROM.bin && cp Stock_v21.4.6.10/MT7620_AP_2T2R-4L_V15.BIN /opt/rt-n56u/trunk/vendors/Ralink/MT7620/MT7620_AP_2T2R-4L_external_LNA_external_PA_V15.bin
+	       sudo cd /opt/rt-n56u/toolchain-mipsel && ./clean_sources && ./build_toolchain_3.4.x && cd /opt/rt-n56u/trunk && ./clear_tree && ./build_firmware && mkdir -p /root/images && cp /opt/rt-n56u/trunk/images/*.trx /opt/rt-n56u/images
+        echo "::set-env name=FILE_NAME::PSG1218-$(date "+%Y%m%d")"  # 包名
+        echo "::set-env name=IMAGES_PATH::/opt/rt-n56u/images/"      # 打包目录
+        echo "::set-output name=status::success"
+  - name : Upload Packages           # 6. 打包文件并且上传到当前主分支
+      uses: actions/upload-artifact@master
+      if: env.UPLOAD_FIRMWARE == 'true' && success()   # 成功才执行
+      with:
+        name: Padavan-${{env.FILE_NAME}}
+        path: ${{ env.IMAGES_PATH }}
+  - name: Upload firmware to cowtransfer
       if: env.UPLOAD_COWTRANSFER == 'true' && success()
       run: |
         curl -fsSL git.io/file-transfer | sh
         ./transfer cow --block 2621440 -s -p 64 --no-progress ${IMAGES_PATH} 2>&1 | tee cowtransfer.log
         echo "::warning file=cowtransfer.com::$(cat cowtransfer.log | grep https)"
-   - name: Upload firmware to WeTransfer
+    - name: Upload firmware to WeTransfer
       if: env.UPLOAD_WETRANSFER == 'true' && success()
       run: |
         curl -fsSL git.io/file-transfer | sh
         ./transfer wet -s -p 16 --no-progress ${IMAGES_PATH} 2>&1 | tee wetransfer.log
         echo "::warning file=wetransfer.com::$(cat wetransfer.log | grep https)"
+
