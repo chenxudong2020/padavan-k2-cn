@@ -30,8 +30,11 @@ jobs:
       env:
         DEBIAN_FRONTEND: noninteractive  # 非交互模式
       run: |
-              apt-get update
-	      apt-get install -qy git apt-utils locales build-essential gawk pkg-config gettext automake autoconf autopoint libtool bison flex zlib1g-dev libgmp3-dev libmpfr-dev libmpc-dev texinfo mc libncurses5-dev nano vim autopoint gperf python-docutils module-init-tools
+            sudo apt-get update
+        sudo apt-get -y install unzip libtool-bin curl cmake gperf gawk flex bison nano xxd fakeroot \
+        cpio git python-docutils gettext automake autopoint texinfo build-essential help2man \
+        pkg-config zlib1g-dev libgmp3-dev libmpc-dev libmpfr-dev libncurses5-dev libltdl-dev wget
+        sudo timedatectl set-timezone 'Asia/Shanghai'  # 设置时区
        - name: Clone Code
          run: |
 	      git clone https://bitbucket.org/padavan/rt-n56u.git /opt/rt-n56u 
