@@ -31,7 +31,7 @@ jobs:
         DEBIAN_FRONTEND: noninteractive  # 非交互模式
       run: |
            apt-get update \
-           && apt-get install -qy apt-utils \
+           && apt-get install -qy apt-utils 
 	echo "::set-env name=FILE_NAME::PSG1218-$(date "+%Y%m%d")"  # 包名
         echo "::set-env name=IMAGES_PATH::/opt/rt-n56u/images/"      # 打包目录
         echo "::set-output name=status::success"    
