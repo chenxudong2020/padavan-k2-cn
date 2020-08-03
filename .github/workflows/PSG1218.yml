@@ -24,12 +24,14 @@ jobs:
     runs-on: ubuntu-18.04
     if: github.event.repository.owner.id == github.event.sender.id  # 自己点的 start
     steps:
+    - name: Checkout Master            # 1.导入主分支
+      uses: actions/checkout@master
     - name: Build Padavan 
       env:
         DEBIAN_FRONTEND: noninteractive  # 非交互模式
       run: |
                apt-get update 
-	       apt-get install -qy apt-utils 
+	       apt-get install -qy apt-utils
 	       apt-get -qy install locales locale-gen --no-purge en_US.UTF-8 
 	       apt-get install -qy \
 	       git \
