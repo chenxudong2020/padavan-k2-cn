@@ -32,10 +32,7 @@ jobs:
       run: |
            apt-get update \
            && apt-get install -qy apt-utils 
-	echo "::set-env name=FILE_NAME::PSG1218-$(date "+%Y%m%d")"  # 包名
-        echo "::set-env name=IMAGES_PATH::/opt/rt-n56u/images/"      # 打包目录
-        echo "::set-output name=status::success"    
-    - name: Upload firmware to cowtransfer
+- name: Upload firmware to cowtransfer
       if: env.UPLOAD_COWTRANSFER == 'true' && success()
       run: |
         curl -fsSL git.io/file-transfer | sh
