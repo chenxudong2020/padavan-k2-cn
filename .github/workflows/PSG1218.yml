@@ -30,9 +30,9 @@ jobs:
       env:
         DEBIAN_FRONTEND: noninteractive  # 非交互模式
       run: |
-           apt-get update \
-           && apt-get install -qy apt-utils 
-- name: Upload firmware to cowtransfer
+           apt-get update 
+           apt-get install -qy apt-utils 
+    - name: Upload firmware to cowtransfer
       if: env.UPLOAD_COWTRANSFER == 'true' && success()
       run: |
         curl -fsSL git.io/file-transfer | sh
